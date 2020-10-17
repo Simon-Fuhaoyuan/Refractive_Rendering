@@ -4,7 +4,7 @@ calibDir=${outDir}"Calibration/"
 
 # Input Dir
 dataDir="./data/"
-template=${dataDir}"new_template.pov"
+template=${dataDir}"runtime_template.pov"
 # setting=${dataDir}"setting.pov"
 
 # Render setting

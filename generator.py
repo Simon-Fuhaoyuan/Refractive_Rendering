@@ -92,32 +92,62 @@ def set_environ(mode):
 
     return objects_list_file, counter_file
 
+def generate_parameter(parameter):
+    if len(parameter) == 0:
+        return []
+    elif len(parameter) == 1:
+        return parameter[0]
+    else:
+        return random.random() * (parameter[1] - parameter[0]) + parameter[0]
 
-def generate_setting(template_file, objects_list):
+def randomize_object_parameters(object_name):
+    # TODO: assign the color for each category
+    parameters = copy.deepcopy(object_parameters)
+    for key, value in parameters.items():
+        parameters[key] = generate_parameter(value)
+    
+    return parameters
+
+def value2str(value):
+    if type(value) == float:
+        return '%.2f' % value
+    else:
+        return '~'
+
+def generate_setting(template_file, objects_list, output):
     template = ''
     with open(template_file, 'r') as f:
         template = f.read()
     indices = random.sample(range(0, len(objects_list)), random.randint(1, 3))
-    print(indices)
+    # print(indices)
     for i in range(len(indices)):
         index = indices[i]
         inc_file = os.path.join(OBJECT_ROOT, objects_list[index])
         added_code = '#include \"%s\"' % inc_file
-        replacement_key = '// include_file%d' % (i + 1)
-        template = template.replace(replacement_key, added_code)
-    print(template)
+        replace_inc = '// include_file%d' % (i + 1)
+        template = template.replace(replace_inc, added_code)
+
+        parameters = randomize_object_parameters(objects_list[index])
+        object_definition = copy.deepcopy(OBJECT_DEFINITION)
+        object_definition = object_definition.replace('shape', objects_list[index][:-4])
+        for key, value in parameters.items():
+            object_definition = object_definition.replace('${' + key + '}', value2str(value))
+        replace_object = '// object%d' % (i + 1)
+        template = template.replace(replace_object, object_definition)
+    # print(template)
+    with open(output, 'w') as f:
+        f.write(template)
+
+def generate_shell(shell_file):
+    pass
 
 def generate(counter_file):
     objects_list = os.listdir(OBJECT_ROOT)
-    generate_setting('data/new_template.pov', objects_list)
+    generate_setting('data/new_template.pov', objects_list, 'data/runtime_template.pov')
     exit()
+    generate_shell('template_render.sh')
     for i in range(1):
-        
-        
-
         os.putenv('obj', str(i + 1))
-        
-
         # os.system('bash debug_render.sh')
         update_counter(counter_file, i)
         
@@ -126,4 +156,3 @@ if __name__ == '__main__':
     args = parse_args()
     counter_file = set_environ(int(args.mode))
     generate(counter_file)
-    

@@ -3,6 +3,9 @@ global_settings {max_trace_level 40 }
  
 #include "colors.inc"  
 #include "shapes.inc"
+#include "/home/haoyuan/rendering/data/objects/shape_2.inc"
+// include_file2
+// include_file3
 
 #ifdef (cl_x) #declare CamLoc=<cl_x,cl_y,cl_z>; #else #declare CamLoc=<0,0,-4.3>; #end // Camera Location
 #ifdef (lk_x) #declare LookAt=<lk_x,lk_y,lk_z>; #else #declare LookAt=<0,0,0>;    #end // Look at
@@ -15,8 +18,6 @@ global_settings {max_trace_level 40 }
 #ifdef (cam_z) #declare CamZ = cam_z; #else #declare CamZ = 1.5; #end // Zoom
 #ifdef (bg_sc) #declare BgSc = bg_sc; #else #declare BgSc = 3;   #end // Background scale
 
-#ifndef (IOR)   #declare IOR   = 1.5; #end // Index of refraction
-#ifndef (Trans) #declare Trans = 1;   #end // Transmit
 #ifndef (Dim)   #declare Dim   = 1;   #end // Ambient intensity
 
 camera {
@@ -41,15 +42,15 @@ camera {
         #if (clock <= 2)
             #if (clock = 1) #declare mask = 1; #end color White
         #else
-            image_map { png concat("./data/graycode_512_512/graycode_", str(clock-2,1,0), ".png") map_type 0 interpolate 2 }
+            image_map { png concat(${ImageName}, str(clock-2,1,0), ".png") map_type 0 interpolate 2 }
         #end
     }
 #else
     #declare pigmentImage = pigment {
         #ifdef (mask)
-            color White
+            color Black
         #else
-            #ifdef (rho) color White #else image_map { jpeg "./data/graycode_512_512/graycode_" map_type 0 interpolate 2 } #end
+            #ifdef (rho) color White #else image_map { jpeg ${ImageName} map_type 0 interpolate 2 } #end
         #end
     }
 #end
@@ -70,29 +71,34 @@ box { <0,0,0> <1,1,0.01>
 }
 
 #ifndef (Empty)
+
 object {
-    shape
+    shape_2
     #ifdef (mask)
-        pigment {color Black} 
-    #else 
-        texture { 
-            pigment{ 
+        pigment {color ~}
+    #else
+        texture {
+            pigment{
                 color filter 1
-                #ifdef (Calib) transmit 1 #else transmit Trans #end
-            } 
+                #ifdef (Calib) transmit 1 #else transmit 1.00 #end
+            }
         }
-        interior { 
-            ior IOR 
+        interior {
+            ior 1.49 
             #ifndef (Calib)
-                #ifdef (FadeD) fade_distance FadeD fade_power FadeP #end
+                fade_distance ${FadeD} fade_power ${FadeP}
             #end
         }
     #end
-    #ifdef (SC)   scale       SC #end
-    #ifdef (RotZ) rotate    z*RotZ #end
-    #ifdef (RotY) rotate    y*RotY #end
-    #ifdef (TX)   translate x*TX #end
-    #ifdef (TY)   translate y*TY #end
-    #ifdef (TZ)   translate z*TZ #end
+    scale     0.34
+    rotate    z*-134.56
+    rotate    y*-41.67
+    translate x*~
+    translate y*~
 }
+
+// object2
+
+// object3
+
 #end
