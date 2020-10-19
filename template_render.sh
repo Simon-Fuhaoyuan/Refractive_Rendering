@@ -5,18 +5,18 @@ calibDir=${outDir}"Calibration/"
 # Input Dir
 dataDir="./data/"
 template=${dataDir}"runtime_template.pov"
-# setting=${dataDir}"setting.pov"
+setting=${dataDir}"setting.pov"
 
 # Render setting
 D="Declare="
 common="+H512 +W512 -GR -GS -GW +GFerror +GP +FJ +A -D" # Common POV-RAY render setting
 # Please refer to template.pov for definition of the following parameters 
-cam_obj_bg_setting="${D}cl_x=0 ${D}cl_y=0 ${D}cl_z=-3.74 ${D}lk_x=0 ${D}lk_y=0 ${D}lk_z=0.00 ${D}cs_x=0.00 ${D}cam_a=1.00 ${D}cam_z=1.77 ${D}bg_sc=3.06 ${D}bg_pz=3.02 ${D}bg_rx=0.00 ${D}bg_ry=0.00 ${D}bg_rz=0.00 ${D}Dim=0.89 ${D}Trans=0.99 ${D}SC=0.5 ${D}IOR=1.48 ${D}RotZ=0 ${D}RotY=0 ${D}TX=0.00 ${D}TY=0.00 ${D}FadeD=1.63 ${D}FadeP=1001.00" 
+cam_obj_bg_setting="${D}cl_x=${cl_x} ${D}cl_y=${cl_y} ${D}cl_z=${cl_z} ${D}lk_x=${lk_x} ${D}lk_y=${lk_y} ${D}lk_z=${lk_z} ${D}cs_x=${cs_x} ${D}cam_a=${cam_a} ${D}cam_z=${cam_z} ${D}bg_sc=${bg_sc} ${D}bg_pz=${bg_pz} ${D}bg_rx=${bg_rx} ${D}bg_ry=${bg_ry} ${D}bg_rz=${bg_rz} ${D}Dim=${Dim}" 
 echo $cam_obj_bg_setting
 
 # Render images, object mask and attenuation mask
 mkdir -p $outDir
-sed -e  's#\${ImageName}#"data/COCO_train2014_000000000009.jpg"#' ${template} > ${setting}
+sed -e  's#\${ImageName}#"${COCOImage}"#' ${template} > ${setting}
 povray -I$setting $common ${cam_obj_bg_setting} -O${outDir}${obj}_ref ${D}Empty=1
 povray -I$setting $common ${cam_obj_bg_setting} -O${outDir}${obj}
 povray -I$setting $common ${cam_obj_bg_setting} -O${outDir}${obj}_mask +FN ${D}mask=1

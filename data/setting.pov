@@ -3,9 +3,9 @@ global_settings {max_trace_level 40 }
  
 #include "colors.inc"  
 #include "shapes.inc"
+#include "/home/haoyuan/rendering/data/objects/shape_5.inc"
+#include "/home/haoyuan/rendering/data/objects/shape_4.inc"
 #include "/home/haoyuan/rendering/data/objects/shape_2.inc"
-// include_file2
-// include_file3
 
 #ifdef (cl_x) #declare CamLoc=<cl_x,cl_y,cl_z>; #else #declare CamLoc=<0,0,-4.3>; #end // Camera Location
 #ifdef (lk_x) #declare LookAt=<lk_x,lk_y,lk_z>; #else #declare LookAt=<0,0,0>;    #end // Look at
@@ -42,7 +42,7 @@ camera {
         #if (clock <= 2)
             #if (clock = 1) #declare mask = 1; #end color White
         #else
-            image_map { png concat(${ImageName}, str(clock-2,1,0), ".png") map_type 0 interpolate 2 }
+            image_map { png concat("/disk1/data/coco/train2017/000000277710.jpg", str(clock-2,1,0), ".png") map_type 0 interpolate 2 }
         #end
     }
 #else
@@ -50,7 +50,7 @@ camera {
         #ifdef (mask)
             color Black
         #else
-            #ifdef (rho) color White #else image_map { jpeg ${ImageName} map_type 0 interpolate 2 } #end
+            #ifdef (rho) color White #else image_map { jpeg "/disk1/data/coco/train2017/000000277710.jpg" map_type 0 interpolate 2 } #end
         #end
     }
 #end
@@ -73,9 +73,9 @@ box { <0,0,0> <1,1,0.01>
 #ifndef (Empty)
 
 object {
-    shape_2
+    shape_5
     #ifdef (mask)
-        pigment {color ~}
+        pigment {color Green}
     #else
         texture {
             pigment{
@@ -84,21 +84,67 @@ object {
             }
         }
         interior {
-            ior 1.49 
+            ior 1.35 
             #ifndef (Calib)
-                fade_distance ${FadeD} fade_power ${FadeP}
+                fade_distance 1.63 fade_power 1001.00
             #end
         }
     #end
-    scale     0.34
-    rotate    z*-134.56
-    rotate    y*-41.67
-    translate x*~
-    translate y*~
+    scale     0.36
+    rotate    z*-36.04
+    rotate    y*-85.85
+    translate x*0.00
+    translate y*0.00
 }
 
-// object2
+object {
+    shape_4
+    #ifdef (mask)
+        pigment {color Green}
+    #else
+        texture {
+            pigment{
+                color filter 1
+                #ifdef (Calib) transmit 1 #else transmit 1.00 #end
+            }
+        }
+        interior {
+            ior 1.36 
+            #ifndef (Calib)
+                fade_distance 1.63 fade_power 1001.00
+            #end
+        }
+    #end
+    scale     0.31
+    rotate    z*171.87
+    rotate    y*-178.49
+    translate x*0.00
+    translate y*0.00
+}
 
-// object3
+object {
+    shape_2
+    #ifdef (mask)
+        pigment {color Green}
+    #else
+        texture {
+            pigment{
+                color filter 1
+                #ifdef (Calib) transmit 1 #else transmit 1.00 #end
+            }
+        }
+        interior {
+            ior 1.43 
+            #ifndef (Calib)
+                fade_distance 1.63 fade_power 1001.00
+            #end
+        }
+    #end
+    scale     0.47
+    rotate    z*-1.76
+    rotate    y*77.47
+    translate x*0.00
+    translate y*0.00
+}
 
 #end

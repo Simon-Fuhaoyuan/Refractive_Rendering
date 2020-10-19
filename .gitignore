@@ -3,3 +3,5 @@ TODO
 *.txt
 *__pycache__/
 *.pyc
+*runtime*
+counter

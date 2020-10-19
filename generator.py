@@ -31,18 +31,12 @@ OBJECT_DEFINITION = \
     translate x*${TX}\n\
     translate y*${TY}\n\
 }'
-
-# options
-OUT_DIRS = ['Images_Glass/', 'Images_Lens/', 'Images_Complex/', 'Images_Debug/']
-CATEGORIES = ['Glass/', 'Lens/', 'Complex/', 'Glass/']
-FILES = ['train_glass_obj.txt', 'train_lens_obj.txt', 'train_complex_obj.txt', 'train_glass_obj.txt']
-COUNTER = ['counter_glass', 'counter_lens', 'counter_complex', 'counter_debug']
-SETTINGS = ['setting_glass.pov', 'setting_lens.pov', 'setting_complex.pov', 'setting_debug.pov']
+BG_ROOT = '/disk1/data/coco/train2017'
 
 camera_parameters = {
     'cl_x': [0.00], # Camera Location
     'cl_y': [0.00], 
-    'cl_z': [0.00], 
+    'cl_z': [-4.5, -3.5], 
     'lk_x': [0.00], # Camera Look At
     'lk_y': [0.00],
     'lk_z': [0.00],
@@ -58,16 +52,16 @@ camera_parameters = {
 }
 
 object_parameters = {
-    'COLOR': [], # Category Color
+    'COLOR': ['Green'], # Category Color
     'Trans': [1.00], # Transmit
     'SC': [0.3, 0.5], # Scale
     'IOR': [1.3, 1.5], # Index of Refraction
     'RotZ': [-180, 180], # Object Rotation
     'RotY': [-180, 180],
-    'TX': [], # Object Translation
-    'TY': [],
-    'FadedD': [1.63], # Fade Distance
-    'FadedP': [1001.00], # Fade Power
+    'TX': [0.00], # Object Translation
+    'TY': [0.00],
+    'FadeD': [1.63], # Fade Distance
+    'FadeP': [1001.00], # Fade Power
 }
 
 def parse_args():
@@ -79,18 +73,10 @@ def parse_args():
 
 def update_counter(counter_file, cnt):
     with open(counter_file, 'w') as f:
-        f.write(str(cnt))
+        f.write(str(cnt) + '\n')
 
 def set_environ(mode):
-    objects_list_file = FILES[mode]
-    objects_path_prefix = OBJECT_ROOT + CATEGORIES[mode]
-    counter_file = COUNTER[mode]
-
-    os.putenv('objects_prefix', objects_path_prefix)
-    os.putenv('outDir', OUT_DIRS[mode])
-    os.putenv('setting', os.path.join('./data/', SETTINGS[mode]))
-
-    return objects_list_file, counter_file
+    return 'counter'
 
 def generate_parameter(parameter):
     if len(parameter) == 0:
@@ -108,9 +94,18 @@ def randomize_object_parameters(object_name):
     
     return parameters
 
+def randomize_camera_parameters():
+    parameters = copy.deepcopy(camera_parameters)
+    for key, value in parameters.items():
+        parameters[key] = generate_parameter(value)
+    
+    return parameters
+
 def value2str(value):
     if type(value) == float:
         return '%.2f' % value
+    elif type(value) == str:
+        return value
     else:
         return '~'
 
@@ -138,17 +133,28 @@ def generate_setting(template_file, objects_list, output):
     with open(output, 'w') as f:
         f.write(template)
 
-def generate_shell(shell_file):
-    pass
+def generate_shell(shell_file, bg_list, output):
+    template = ''
+    with open(shell_file, 'r') as f:
+        template = f.read()
+    parameters = randomize_camera_parameters()
+    for key, value in parameters.items():
+            template = template.replace('${' + key + '}', value2str(value))
+    index = random.randint(0, len(bg_list) - 1)
+    background = os.path.join(BG_ROOT, bg_list[index])
+    template = template.replace('${COCOImage}', background)
+    print(template)
+    with open(output, 'w') as f:
+        f.write(template)
 
 def generate(counter_file):
     objects_list = os.listdir(OBJECT_ROOT)
-    generate_setting('data/new_template.pov', objects_list, 'data/runtime_template.pov')
-    exit()
-    generate_shell('template_render.sh')
+    backgrounds_list = os.listdir(BG_ROOT)
     for i in range(1):
+        generate_setting('data/new_template.pov', objects_list, 'data/runtime_template.pov')
+        generate_shell('template_render.sh', backgrounds_list, 'runtime_render.sh')
         os.putenv('obj', str(i + 1))
-        # os.system('bash debug_render.sh')
+        os.system('bash runtime_render.sh')
         update_counter(counter_file, i)
         
 
