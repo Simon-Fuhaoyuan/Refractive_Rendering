@@ -3,70 +3,20 @@ from tqdm import tqdm
 import random
 import argparse
 import copy
+import time
+from definition import OBJECT_DEFINITION, camera_parameters, object_parameters
 
-
-OBJECT_ROOT = '/home/haoyuan/rendering/data/objects/'
-OBJECT_DEFINITION = \
-'object {\n\
-    shape\n\
-    #ifdef (mask)\n\
-        pigment {color ${COLOR}}\n\
-    #else\n\
-        texture {\n\
-            pigment{\n\
-                color filter 1\n\
-                #ifdef (Calib) transmit 1 #else transmit ${Trans} #end\n\
-            }\n\
-        }\n\
-        interior {\n\
-            ior ${IOR} \n\
-            #ifndef (Calib)\n\
-                fade_distance ${FadeD} fade_power ${FadeP}\n\
-            #end\n\
-        }\n\
-    #end\n\
-    scale     ${SC}\n\
-    rotate    z*${RotZ}\n\
-    rotate    y*${RotY}\n\
-    translate x*${TX}\n\
-    translate y*${TY}\n\
-}'
-BG_ROOT = '/disk1/data/coco/train2017'
-
-camera_parameters = {
-    'cl_x': [0.00], # Camera Location
-    'cl_y': [0.00], 
-    'cl_z': [-4.5, -3.5], 
-    'lk_x': [0.00], # Camera Look At
-    'lk_y': [0.00],
-    'lk_z': [0.00],
-    'cs_x': [0.00], # Camera Sky
-    'cam_a': [1.00], # Aspect ratio
-    'cam_z': [1.50, 2.00], # Zoom
-    'bg_sc': [2.50, 3.50], # Background Scale
-    'bg_pz': [3.02],
-    'bg_rx': [0.00], # Background Rotation
-    'bg_ry': [0.00], 
-    'bg_rz': [0.00], 
-    'Dim': [0.85, 1.00], # Ambient intensity
-}
-
-object_parameters = {
-    'COLOR': ['Green'], # Category Color
-    'Trans': [1.00], # Transmit
-    'SC': [0.3, 0.5], # Scale
-    'IOR': [1.3, 1.5], # Index of Refraction
-    'RotZ': [-180, 180], # Object Rotation
-    'RotY': [-180, 180],
-    'TX': [0.00], # Object Translation
-    'TY': [0.00],
-    'FadeD': [1.63], # Fade Distance
-    'FadeP': [1001.00], # Fade Power
-}
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', '-m', default='0')
+    parser.add_argument('--number', '-n', type=int, default=1)
+    parser.add_argument('--object_root', default='/home/haoyuan/rendering/data/objects/')
+    parser.add_argument('--bg_root', default='/disk1/data/coco/train2017/')
+    parser.add_argument('--template_template', '-t', default='data/new_template.pov')
+    parser.add_argument('--runtime_template', default='data/runtime_template.pov')
+    parser.add_argument('--template_render', default='./template_render.sh')
+    parser.add_argument('--runtime_render', default='./runtime_render.sh')
+    parser.add_argument('--counter', default='counter')
     args = parser.parse_args()
 
     return args
@@ -74,9 +24,6 @@ def parse_args():
 def update_counter(counter_file, cnt):
     with open(counter_file, 'w') as f:
         f.write(str(cnt) + '\n')
-
-def set_environ(mode):
-    return 'counter'
 
 def generate_parameter(parameter):
     if len(parameter) == 0:
@@ -109,15 +56,15 @@ def value2str(value):
     else:
         return '~'
 
-def generate_setting(template_file, objects_list, output):
+def generate_template(args, objects_list):
     template = ''
-    with open(template_file, 'r') as f:
+    with open(args.template_template, 'r') as f:
         template = f.read()
     indices = random.sample(range(0, len(objects_list)), random.randint(1, 3))
     # print(indices)
     for i in range(len(indices)):
         index = indices[i]
-        inc_file = os.path.join(OBJECT_ROOT, objects_list[index])
+        inc_file = os.path.join(args.object_root, objects_list[index])
         added_code = '#include \"%s\"' % inc_file
         replace_inc = '// include_file%d' % (i + 1)
         template = template.replace(replace_inc, added_code)
@@ -130,35 +77,36 @@ def generate_setting(template_file, objects_list, output):
         replace_object = '// object%d' % (i + 1)
         template = template.replace(replace_object, object_definition)
     # print(template)
-    with open(output, 'w') as f:
+    with open(args.runtime_template, 'w') as f:
         f.write(template)
 
-def generate_shell(shell_file, bg_list, output):
+def generate_shell(args, bg_list):
     template = ''
-    with open(shell_file, 'r') as f:
+    with open(args.template_render, 'r') as f:
         template = f.read()
     parameters = randomize_camera_parameters()
     for key, value in parameters.items():
             template = template.replace('${' + key + '}', value2str(value))
     index = random.randint(0, len(bg_list) - 1)
-    background = os.path.join(BG_ROOT, bg_list[index])
+    background = os.path.join(args.bg_root, bg_list[index])
     template = template.replace('${COCOImage}', background)
     print(template)
-    with open(output, 'w') as f:
+    with open(args.runtime_render, 'w') as f:
         f.write(template)
 
-def generate(counter_file):
-    objects_list = os.listdir(OBJECT_ROOT)
-    backgrounds_list = os.listdir(BG_ROOT)
-    for i in range(1):
-        generate_setting('data/new_template.pov', objects_list, 'data/runtime_template.pov')
-        generate_shell('template_render.sh', backgrounds_list, 'runtime_render.sh')
+def generate(args):
+    objects_list = os.listdir(args.object_root)
+    backgrounds_list = os.listdir(args.bg_root)
+    for i in range(args.number):
+        generate_template(args, objects_list)
+        generate_shell(args, backgrounds_list)
         os.putenv('obj', str(i + 1))
-        os.system('bash runtime_render.sh')
-        update_counter(counter_file, i)
+        os.system('bash %s' % args.runtime_render)
+        update_counter(args.counter, i + 1)
         
 
 if __name__ == '__main__':
+    start = time.time()
     args = parse_args()
-    counter_file = set_environ(int(args.mode))
-    generate(counter_file)
+    generate(args)
+    print(time.time() - start)

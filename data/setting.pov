@@ -4,8 +4,8 @@ global_settings {max_trace_level 40 }
 #include "colors.inc"  
 #include "shapes.inc"
 #include "/home/haoyuan/rendering/data/objects/shape_5.inc"
-#include "/home/haoyuan/rendering/data/objects/shape_4.inc"
-#include "/home/haoyuan/rendering/data/objects/shape_2.inc"
+#include "/home/haoyuan/rendering/data/objects/shape_3.inc"
+// include_file3
 
 #ifdef (cl_x) #declare CamLoc=<cl_x,cl_y,cl_z>; #else #declare CamLoc=<0,0,-4.3>; #end // Camera Location
 #ifdef (lk_x) #declare LookAt=<lk_x,lk_y,lk_z>; #else #declare LookAt=<0,0,0>;    #end // Look at
@@ -42,7 +42,7 @@ camera {
         #if (clock <= 2)
             #if (clock = 1) #declare mask = 1; #end color White
         #else
-            image_map { png concat("/disk1/data/coco/train2017/000000277710.jpg", str(clock-2,1,0), ".png") map_type 0 interpolate 2 }
+            image_map { png concat("./data/graycode_512_512/graycode_", str(clock-2,1,0), ".png") map_type 0 interpolate 2 }
         #end
     }
 #else
@@ -50,7 +50,7 @@ camera {
         #ifdef (mask)
             color Black
         #else
-            #ifdef (rho) color White #else image_map { jpeg "/disk1/data/coco/train2017/000000277710.jpg" map_type 0 interpolate 2 } #end
+            #ifdef (rho) color White #else image_map { jpeg "./data/graycode_512_512/graycode_" map_type 0 interpolate 2 } #end
         #end
     }
 #end
@@ -84,21 +84,21 @@ object {
             }
         }
         interior {
-            ior 1.35 
+            ior 1.44 
             #ifndef (Calib)
                 fade_distance 1.63 fade_power 1001.00
             #end
         }
     #end
-    scale     0.36
-    rotate    z*-36.04
-    rotate    y*-85.85
-    translate x*0.00
-    translate y*0.00
+    scale     0.35
+    rotate    z*-31.10
+    rotate    y*-158.95
+    translate x*-0.45
+    translate y*-0.04
 }
 
 object {
-    shape_4
+    shape_3
     #ifdef (mask)
         pigment {color Green}
     #else
@@ -109,42 +109,19 @@ object {
             }
         }
         interior {
-            ior 1.36 
+            ior 1.48 
             #ifndef (Calib)
                 fade_distance 1.63 fade_power 1001.00
             #end
         }
     #end
-    scale     0.31
-    rotate    z*171.87
-    rotate    y*-178.49
-    translate x*0.00
-    translate y*0.00
+    scale     0.42
+    rotate    z*-123.34
+    rotate    y*42.22
+    translate x*0.06
+    translate y*-0.62
 }
 
-object {
-    shape_2
-    #ifdef (mask)
-        pigment {color Green}
-    #else
-        texture {
-            pigment{
-                color filter 1
-                #ifdef (Calib) transmit 1 #else transmit 1.00 #end
-            }
-        }
-        interior {
-            ior 1.43 
-            #ifndef (Calib)
-                fade_distance 1.63 fade_power 1001.00
-            #end
-        }
-    #end
-    scale     0.47
-    rotate    z*-1.76
-    rotate    y*77.47
-    translate x*0.00
-    translate y*0.00
-}
+// object3
 
 #end

@@ -1,4 +1,8 @@
 Images/
+Images
+Objects/
+Objects
+Primitives
 TODO
 *.txt
 *__pycache__/
