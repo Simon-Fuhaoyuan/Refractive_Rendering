@@ -106,6 +106,7 @@ def generate_shell(args, bg_list):
 
 def generate(args):
     objects_list = os.listdir(args.object_root)
+    random.shuffle(objects_list)
     backgrounds_list = os.listdir(args.bg_root)
     for i in range(args.number):
         generate_template(args, objects_list)

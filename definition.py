@@ -47,8 +47,8 @@ object_parameters = {
     'Trans': [1.00], # Transmit
     'SC': [0.3, 0.5], # Scale
     'IOR': [1.3, 1.5], # Index of Refraction
-    'RotZ': [-180, 180], # Object Rotation
-    'RotY': [-180, 180],
+    'RotZ': [-90, 90], # Object Rotation
+    'RotY': [-45, 45],
     'TX': [-0.80, 0.80], # Object Translation
     'TY': [-0.80, 0.80],
     'FadeD': [1.63], # Fade Distance
@@ -58,7 +58,7 @@ object_parameters = {
 COLORS = {
     'Cups': 'Green',
     'Lens': 'Red',
-    'Box': 'Blue',
+    'Glass': 'Blue',
     'Plane': 'Yellow',
-    'Ball': 'Cyan'
+    'Sphere': 'Cyan'
 }
