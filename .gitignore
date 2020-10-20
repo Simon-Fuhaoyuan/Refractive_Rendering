@@ -9,3 +9,4 @@ TODO
 *.pyc
 *runtime*
 counter
+Debug_Objects/

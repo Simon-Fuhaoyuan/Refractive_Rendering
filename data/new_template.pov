@@ -27,6 +27,8 @@ camera {
     up CamUp
 }
 
+// light_source {<0, 0, -5> color White}
+
 #macro OrientZ(p1,p2,cs)
     #local nz = vnormalize(p2-p1);
     #local nx = vnormalize(vcross(cs,nz)); 

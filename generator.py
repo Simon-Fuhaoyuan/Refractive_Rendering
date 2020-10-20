@@ -4,16 +4,16 @@ import random
 import argparse
 import copy
 import time
-from definition import OBJECT_DEFINITION, camera_parameters, object_parameters
+from definition import OBJECT_DEFINITION, camera_parameters, object_parameters, COLORS
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--number', '-n', type=int, default=1)
-    parser.add_argument('--object_root', default='/home/haoyuan/rendering/data/objects/')
+    parser.add_argument('--object_root', default='./Objects')
     parser.add_argument('--bg_root', default='/disk1/data/coco/train2017/')
-    parser.add_argument('--template_template', '-t', default='data/new_template.pov')
-    parser.add_argument('--runtime_template', default='data/runtime_template.pov')
+    parser.add_argument('--template_template', '-t', default='./data/new_template.pov')
+    parser.add_argument('--runtime_template', default='./data/runtime_template.pov')
     parser.add_argument('--template_render', default='./template_render.sh')
     parser.add_argument('--runtime_render', default='./runtime_render.sh')
     parser.add_argument('--counter', default='counter')
@@ -56,6 +56,15 @@ def value2str(value):
     else:
         return '~'
 
+def get_color(name):
+    category_id = name[:-4]
+    category = ''
+    index = 0
+    while category_id[index] != '_':
+        category += category_id[index]
+        index += 1
+    return COLORS[category]
+
 def generate_template(args, objects_list):
     template = ''
     with open(args.template_template, 'r') as f:
@@ -70,6 +79,7 @@ def generate_template(args, objects_list):
         template = template.replace(replace_inc, added_code)
 
         parameters = randomize_object_parameters(objects_list[index])
+        parameters['COLOR'] = get_color(objects_list[index])
         object_definition = copy.deepcopy(OBJECT_DEFINITION)
         object_definition = object_definition.replace('shape', objects_list[index][:-4])
         for key, value in parameters.items():

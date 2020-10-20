@@ -3,8 +3,8 @@ global_settings {max_trace_level 40 }
  
 #include "colors.inc"  
 #include "shapes.inc"
-#include "/home/haoyuan/rendering/data/objects/shape_5.inc"
-#include "/home/haoyuan/rendering/data/objects/shape_3.inc"
+#include "./Debug_Objects/Box_3.inc"
+#include "./Debug_Objects/Box_1.inc"
 // include_file3
 
 #ifdef (cl_x) #declare CamLoc=<cl_x,cl_y,cl_z>; #else #declare CamLoc=<0,0,-4.3>; #end // Camera Location
@@ -26,6 +26,8 @@ camera {
     right CamR * CamA
     up CamUp
 }
+
+// light_source {<0, 0, -5> color White}
 
 #macro OrientZ(p1,p2,cs)
     #local nz = vnormalize(p2-p1);
@@ -73,9 +75,9 @@ box { <0,0,0> <1,1,0.01>
 #ifndef (Empty)
 
 object {
-    shape_5
+    Box_3
     #ifdef (mask)
-        pigment {color Green}
+        pigment {color Blue}
     #else
         texture {
             pigment{
@@ -84,23 +86,23 @@ object {
             }
         }
         interior {
-            ior 1.44 
+            ior 1.42 
             #ifndef (Calib)
                 fade_distance 1.63 fade_power 1001.00
             #end
         }
     #end
-    scale     0.35
-    rotate    z*-31.10
-    rotate    y*-158.95
-    translate x*-0.45
-    translate y*-0.04
+    scale     0.41
+    rotate    z*143.81
+    rotate    y*-105.83
+    translate x*-0.01
+    translate y*0.46
 }
 
 object {
-    shape_3
+    Box_1
     #ifdef (mask)
-        pigment {color Green}
+        pigment {color Blue}
     #else
         texture {
             pigment{
@@ -109,17 +111,17 @@ object {
             }
         }
         interior {
-            ior 1.48 
+            ior 1.35 
             #ifndef (Calib)
                 fade_distance 1.63 fade_power 1001.00
             #end
         }
     #end
     scale     0.42
-    rotate    z*-123.34
-    rotate    y*42.22
-    translate x*0.06
-    translate y*-0.62
+    rotate    z*-152.90
+    rotate    y*-153.23
+    translate x*0.58
+    translate y*-0.52
 }
 
 // object3

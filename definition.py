@@ -43,7 +43,7 @@ camera_parameters = {
 }
 
 object_parameters = {
-    'COLOR': ['Green'], # Category Color
+    'COLOR': [], # Category Color
     'Trans': [1.00], # Transmit
     'SC': [0.3, 0.5], # Scale
     'IOR': [1.3, 1.5], # Index of Refraction
@@ -53,4 +53,12 @@ object_parameters = {
     'TY': [-0.80, 0.80],
     'FadeD': [1.63], # Fade Distance
     'FadeP': [1001.00], # Fade Power
+}
+
+COLORS = {
+    'Cups': 'Green',
+    'Lens': 'Red',
+    'Box': 'Blue',
+    'Plane': 'Yellow',
+    'Ball': 'Cyan'
 }
