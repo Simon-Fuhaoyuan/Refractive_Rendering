@@ -10,6 +10,7 @@ from definition import OBJECT_DEFINITION, camera_parameters, object_parameters, 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--number', '-n', type=int, default=1)
+    parser.add_argument('--start', '-s', type=int, default=1)
     parser.add_argument('--object_root', default='./Objects')
     parser.add_argument('--bg_root', default='/disk1/data/coco/train2017/')
     parser.add_argument('--template_template', '-t', default='./data/new_template.pov')
@@ -108,12 +109,12 @@ def generate(args):
     objects_list = os.listdir(args.object_root)
     random.shuffle(objects_list)
     backgrounds_list = os.listdir(args.bg_root)
-    for i in range(args.number):
+    for i in range(args.start, args.start + args.number):
         generate_template(args, objects_list)
         generate_shell(args, backgrounds_list)
-        os.putenv('obj', str(i + 1))
+        os.putenv('obj', str(i))
         os.system('bash %s' % args.runtime_render)
-        update_counter(args.counter, i + 1)
+        update_counter(args.counter, i)
         
 
 if __name__ == '__main__':
