@@ -28,24 +28,35 @@ def setupDirList():
     return dir_list
 
 
+def convertMask(mask):
+    mask = np.sum(mask, axis=2)
+    mask = 1 - (mask == 0)
+    mask = mask.astype(float)
+    mask = np.expand_dims(mask, 2).repeat(3, 2)
+
+    return mask
+
+
 def loadData(dir_name):
     flow_name = glob.glob(os.path.join(dir_name, '*.flo'))[0]
     prefix, _ = os.path.splitext(flow_name)
+    prefix = prefix.split('_')[0]
     in_img = imread(prefix + '.jpg').astype(float)
     bg_img = imread(prefix + '_ref.jpg').astype(float)
-    mask = imread(prefix + '_mask.png').astype(float) / 255
+    mask = imread(prefix + '_mask.png').astype(int)
+    mask = convertMask(mask)
     flow = utils.readFloFile(flow_name).astype(float)
     fcolor = utils.flowToColor(flow)
     imsave(prefix + '_fcolor.jpg', fcolor)
-
     h, w, c = in_img.shape
-    mask = np.expand_dims(mask, 2).repeat(3, 2)
+
     return {'in': in_img, 'bg': bg_img, 'mask': mask,
             'flow': flow, 'fcolor': fcolor, 'h': h, 'w': w, 'name': prefix}
 
 
-def renderFinalImg(ref, warped, mask, rho):
-    final = mask * (warped * rho) + (1 - mask) * ref
+def renderFinalImg(ref, warped, mask):
+    final = mask * warped + (1 - mask) * ref
+
     return final
 
 
@@ -87,15 +98,14 @@ def smoothingRho(rho, mask):
 def smoothingEstimation(data, grid_x, grid_y):
     smooth = {}
     smooth['mask'] = smoothingMask(data['mask'])
-    smooth['rho'] = smoothingRho(data['rho'], smooth['mask'])
     smooth['flow'] = smoothingFlow(data['flow'])
     smooth['flow'][(smooth['mask'] < 0.2)[:, :, 0:2]] = 0
     smooth['fcolor'] = utils.flowToColor(smooth['flow'])
     smooth['warped'] = warpImage(data['bg'], smooth['flow'], grid_x, grid_y)
-    smooth['final'] = renderFinalImg(data['bg'], smooth['warped'], smooth['mask'], smooth['rho'])
+    smooth['final'] = renderFinalImg(data['bg'], smooth['warped'], smooth['mask'])
 
     results = {}
-    out = ['mask', 'rho', 'fcolor', 'final']
+    out = ['mask', 'fcolor', 'final']
     for i, name in enumerate(out):
         key = '%s' % (name)
         if name in ['mask', 'rho']:
@@ -110,7 +120,6 @@ def evalList(dir_list):
     loss = {'psnr': 0, 'ssim': 0, 'psnr_bg': 0, 'ssim_bg': 0}
     for idx, dir_name in enumerate(dir_list):
         data = loadData(os.path.join(args.input_root, dir_name))
-        exit()
         h, w = data['h'], data['w']
         print('[%d/%d] Dir: %s, size %dx%d' % (idx, len(dir_list), dir_name, h, w))
 
@@ -118,18 +127,18 @@ def evalList(dir_list):
         grid_x = np.tile(np.linspace(0, w - 1, w), (h, 1)).astype(float)
         grid_y = np.tile(np.linspace(0, h - 1, h), (w, 1)).T.astype(float)
         data['warped'] = warpImage(data['bg'], data['flow'], grid_x, grid_y)
-        data['final'] = renderFinalImg(data['bg'], data['warped'], data['mask'], data['rho'])
+        data['final'] = renderFinalImg(data['bg'], data['warped'], data['mask'])
         imsave(data['name'] + '_final.jpg', data['final'])
 
         # Background Error
         p, s = computeError(data['bg'], data['in'])
         print('\t BG psnr: %f, ssim: %f' % (p, s))
-        loss['psnr_bg'] += p;
+        loss['psnr_bg'] += p
         loss['ssim_bg'] += s
 
         # TOM-Net Error
         p, s = computeError(data['final'], data['in'])
-        loss['psnr'] += p;
+        loss['psnr'] += p
         loss['ssim'] += s
         print('\t TOMNet psnr: %f, ssim: %f' % (p, s))
 
@@ -138,7 +147,7 @@ def evalList(dir_list):
             smoothingEstimation(data, grid_x, grid_y)
 
     print('******* Finish Testing Dir: %s\nList: %s' % (args.input_root, args.dir_list))
-    with open(os.path.join(args.input_root, dir_name, 'Log'), 'w') as f:
+    with open(os.path.join(args.input_root, 'Log'), 'w') as f:
         f.write('Input_root: %s\n' % (args.input_root))
         f.write('dir_list: %s\n' % (args.dir_list))
         for k in loss.keys():
