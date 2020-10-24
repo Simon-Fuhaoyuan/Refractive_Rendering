@@ -3,8 +3,8 @@ global_settings {max_trace_level 40 }
  
 #include "colors.inc"  
 #include "shapes.inc"
-#include "./Debug_Objects/Box_3.inc"
-#include "./Debug_Objects/Box_1.inc"
+#include "./Objects/Sphere_50.inc"
+#include "./Objects/Sphere_76.inc"
 // include_file3
 
 #ifdef (cl_x) #declare CamLoc=<cl_x,cl_y,cl_z>; #else #declare CamLoc=<0,0,-4.3>; #end // Camera Location
@@ -75,34 +75,9 @@ box { <0,0,0> <1,1,0.01>
 #ifndef (Empty)
 
 object {
-    Box_3
+    Sphere_50
     #ifdef (mask)
-        pigment {color Blue}
-    #else
-        texture {
-            pigment{
-                color filter 1
-                #ifdef (Calib) transmit 1 #else transmit 1.00 #end
-            }
-        }
-        interior {
-            ior 1.42 
-            #ifndef (Calib)
-                fade_distance 1.63 fade_power 1001.00
-            #end
-        }
-    #end
-    scale     0.41
-    rotate    z*143.81
-    rotate    y*-105.83
-    translate x*-0.01
-    translate y*0.46
-}
-
-object {
-    Box_1
-    #ifdef (mask)
-        pigment {color Blue}
+        pigment {color Cyan}
     #else
         texture {
             pigment{
@@ -117,11 +92,36 @@ object {
             #end
         }
     #end
-    scale     0.42
-    rotate    z*-152.90
-    rotate    y*-153.23
-    translate x*0.58
-    translate y*-0.52
+    scale     0.35
+    rotate    z*-37.15
+    rotate    y*-39.54
+    translate x*-0.58
+    translate y*0.35
+}
+
+object {
+    Sphere_76
+    #ifdef (mask)
+        pigment {color Cyan}
+    #else
+        texture {
+            pigment{
+                color filter 1
+                #ifdef (Calib) transmit 1 #else transmit 1.00 #end
+            }
+        }
+        interior {
+            ior 1.45 
+            #ifndef (Calib)
+                fade_distance 1.63 fade_power 1001.00
+            #end
+        }
+    #end
+    scale     0.31
+    rotate    z*71.85
+    rotate    y*-20.91
+    translate x*0.07
+    translate y*0.55
 }
 
 // object3
