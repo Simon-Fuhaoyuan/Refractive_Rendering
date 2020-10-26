@@ -30,6 +30,16 @@ def readList(list_path, ignore_head=False):
         lists = lists[1:]
     return lists
 
+def getImageIds(rgb_dir):
+    files = os.listdir(rgb_dir)
+    image_ids = []
+    for f in files:
+        if f.endswith('.jpg') or f.endswith('.png'):
+            image_id, _ = os.path.splitext(f)
+            image_ids.append(image_id)
+
+    return image_ids
+
 
 def readFloFile(filename, short=True):
     with open(filename, 'rb') as f:

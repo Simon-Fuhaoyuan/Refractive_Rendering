@@ -8,10 +8,14 @@ import fastaniso
 import utils as utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input_root', default='../Debug')
-parser.add_argument('--dir_list', default='dir_list.txt')
-parser.add_argument('--max_images', default=-1, type=int)
-parser.add_argument('--smoothing', default=True, action='store_false')
+parser.add_argument('--input_root', default='../Images')
+parser.add_argument('--rgb_dir', default='RGBs')
+parser.add_argument('--ref_dir', default='Refs')
+parser.add_argument('--mask_dir', default='Masks')
+parser.add_argument('--flow_dir', default='Flows')
+parser.add_argument('--final_dir', default='Reconstructs')
+parser.add_argument('--smoothing', default=False, action='store_true')
+parser.add_argument('--cal_loss', default=False, action='store_true')
 args = parser.parse_args()
 
 
@@ -37,21 +41,26 @@ def convertMask(mask):
     return mask
 
 
-def loadData(dir_name):
-    flow_name = glob.glob(os.path.join(dir_name, '*.flo'))[0]
-    prefix, _ = os.path.splitext(flow_name)
-    prefix = prefix.split('_')[0]
-    in_img = imread(prefix + '.jpg').astype(float)
-    bg_img = imread(prefix + '_ref.jpg').astype(float)
-    mask = imread(prefix + '_mask.png').astype(int)
-    mask = convertMask(mask)
+def loadData(image_id):
+    if type(image_id) != str:
+        image_id = str(image_id)
+    flow_name = os.path.join(args.input_root, args.flow_dir, image_id + '_flow.flo')
+    in_name = os.path.join(args.input_root, args.rgb_dir, image_id + '.jpg')
+    bg_name = os.path.join(args.input_root, args.ref_dir, image_id + '_ref.jpg')
+    mask_name = os.path.join(args.input_root, args.mask_dir, image_id + '_mask.png')
     flow = utils.readFloFile(flow_name).astype(float)
+    in_img = imread(in_name).astype(float)
+    bg_img = imread(bg_name).astype(float)
+    mask = imread(mask_name).astype(int)
+    mask = convertMask(mask)
+
+    final_prefix = os.path.join(args.input_root, args.final_dir, image_id)
     fcolor = utils.flowToColor(flow)
-    imsave(prefix + '_fcolor.jpg', fcolor)
+    imsave(final_prefix + '_fcolor.jpg', fcolor)
     h, w, c = in_img.shape
 
-    return {'in': in_img, 'bg': bg_img, 'mask': mask,
-            'flow': flow, 'fcolor': fcolor, 'h': h, 'w': w, 'name': prefix}
+    return {'in': in_img, 'bg': bg_img, 'mask': mask, 'flow': flow,
+            'fcolor': fcolor, 'h': h, 'w': w, 'name': final_prefix}
 
 
 def renderFinalImg(ref, warped, mask):
@@ -115,13 +124,13 @@ def smoothingEstimation(data, grid_x, grid_y):
     utils.saveResultsSeparate(data['name'] + "_smooth", results)
 
 
-def evalList(dir_list):
-    print('Total number of directories: %d' % len(dir_list))
+def reconstructImages(image_ids):
+    print('Total number of images: %d' % len(image_ids))
     loss = {'psnr': 0, 'ssim': 0, 'psnr_bg': 0, 'ssim_bg': 0}
-    for idx, dir_name in enumerate(dir_list):
-        data = loadData(os.path.join(args.input_root, dir_name))
+    for idx, image_id in enumerate(image_ids):
+        data = loadData(image_id)
         h, w = data['h'], data['w']
-        print('[%d/%d] Dir: %s, size %dx%d' % (idx, len(dir_list), dir_name, h, w))
+        print('[%d/%d], size %dx%d' % (idx, len(image_ids), h, w))
 
         # Reconstructed Input Image with the estimated matte and background image
         grid_x = np.tile(np.linspace(0, w - 1, w), (h, 1)).astype(float)
@@ -131,30 +140,31 @@ def evalList(dir_list):
         imsave(data['name'] + '_final.jpg', data['final'])
 
         # Background Error
-        p, s = computeError(data['bg'], data['in'])
-        print('\t BG psnr: %f, ssim: %f' % (p, s))
-        loss['psnr_bg'] += p
-        loss['ssim_bg'] += s
+        if args.cal_loss:
+            p, s = computeError(data['bg'], data['in'])
+            print('\t BG psnr: %f, ssim: %f' % (p, s))
+            loss['psnr_bg'] += p
+            loss['ssim_bg'] += s
 
-        # TOM-Net Error
-        p, s = computeError(data['final'], data['in'])
-        loss['psnr'] += p
-        loss['ssim'] += s
-        print('\t TOMNet psnr: %f, ssim: %f' % (p, s))
+            # TOM-Net Error
+            p, s = computeError(data['final'], data['in'])
+            loss['psnr'] += p
+            loss['ssim'] += s
+            print('\t TOMNet psnr: %f, ssim: %f' % (p, s))
 
         # Smoothing Environment Matte
         if args.smoothing:
             smoothingEstimation(data, grid_x, grid_y)
-
-    print('******* Finish Testing Dir: %s\nList: %s' % (args.input_root, args.dir_list))
-    with open(os.path.join(args.input_root, 'Log'), 'w') as f:
-        f.write('Input_root: %s\n' % (args.input_root))
-        f.write('dir_list: %s\n' % (args.dir_list))
-        for k in loss.keys():
-            print('[%s]: %f' % (k, loss[k] / len(dir_list)))
-            f.write('[%s]: %f\n' % (k, loss[k] / len(dir_list)))
+    if args.cal_loss:
+        print('******* Finish Testing Dir: %s' % args.input_root)
+        with open(os.path.join(args.input_root, 'Log'), 'w') as f:
+            f.write('Input_root: %s\n' % (args.input_root))
+            for k in loss.keys():
+                print('[%s]: %f' % (k, loss[k] / len(image_ids)))
+                f.write('[%s]: %f\n' % (k, loss[k] / len(image_ids)))
 
 
 if __name__ == '__main__':
-    dir_list = setupDirList()
-    evalList(dir_list)
+    image_ids = utils.getImageIds(os.path.join(args.input_root, args.rgb_dir))
+    utils.makeFile(os.path.join(args.input_root, args.final_dir))
+    reconstructImages(image_ids)
